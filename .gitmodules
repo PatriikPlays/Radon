@@ -1,3 +1,6 @@
 [submodule "Krypton"]
 	path = Krypton
 	url = git@github.com:scmcgowen/Krypton.git
+[submodule "howl"]
+	path = howl
+	url = https://github.com/squidDev-CC/howl/

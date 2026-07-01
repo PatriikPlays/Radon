@@ -1,0 +1,66 @@
+name: Auto Build
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build_and_release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v5
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq libfuse2 libpulse0
+
+      - name: Download CraftOS-PC
+        run: |
+          API_URL="https://api.github.com/repos/MCJack123/craftos2/releases/latest"
+          ASSET_URL=$(curl -s $API_URL \
+            | jq -r '.assets[] | select(.name | test("AppImage")) | .browser_download_url')
+          echo "Downloading AppImage from $ASSET_URL"
+          curl -L -o CraftOS-PC.AppImage "$ASSET_URL"
+          chmod +x CraftOS-PC.AppImage
+          mv CraftOS-PC.AppImage /usr/local/bin/craftos
+
+      - name: Run build.sh
+        run: |
+          chmod +x ./build.sh
+          ./build.sh
+
+      - name: Collect artifacts
+        run: |
+          mkdir artifact
+          cp build/radon.lua artifact/
+          cp config.lua artifact/
+          cp products.lua artifact/
+          cp eventHooks.lua artifact/
+          cp CardLayout.lua artifact/
+          tar -cf release.tar artifact/*
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          path: artifact/*
+          retention-days: 90
+
+      - name: Create Latest Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: Latest Build
+          prerelease: true
+          files: |
+            release.tar
+            artifact/radon.lua

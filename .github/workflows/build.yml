@@ -1,0 +1,51 @@
+name: Auto Build
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build_and_release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v5
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq libfuse2 libpulse0
+
+      - name: Download CraftOS-PC
+        run: |
+          API_URL="https://api.github.com/repos/MCJack123/craftos2/releases/latest"
+          ASSET_URL=$(curl -s $API_URL \
+            | jq -r '.assets[] | select(.name | test("AppImage")) | .browser_download_url')
+          echo "Downloading AppImage from $ASSET_URL"
+          curl -L -o CraftOS-PC.AppImage "$ASSET_URL"
+          chmod +x CraftOS-PC.AppImage
+          mv CraftOS-PC.AppImage /usr/local/bin/craftos
+
+      - name: Run build.sh
+        run: |
+          chmod +x ./build.sh
+          ./build.sh
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          path: |
+            build/radon.lua
+            config.lua
+            products.lua
+            eventHooks.lua
+            CardLayout.lua
+          retention-days: 90

@@ -11,7 +11,7 @@ For any support needs or feature requests, contact Allymonies. Radon is in activ
 
 # Installation
 
-While you can install Radon with the Howlfile, or just copying all the files to the computer, it is recommended to use the installer, `pastebin run WAXroOQqH` (RePaste https://p.reconnected.cc/WAXroOQqH). This will download the required files, `radon.lua`, `config.lua`, and `products.lua`.
+While you can install Radon with the Howlfile, or just copying all the files to the computer, it is recommended to use the installer, `pastebin run AIvguxFeA` (RePaste https://p.reconnected.cc/AIvguxFeA). This will download the required files, `radon.lua`, `config.lua`, `products.lua`, `eventHooks.lua` and `CardLayout.lua`.
 
 # Setup
 

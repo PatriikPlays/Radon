@@ -1,15 +1,17 @@
-name: Auto Build
+name: Stable Release
 
 on:
-  push:
-    branches: ["main"]
   workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version"
+        required: true
 
 permissions:
   contents: write
 
 jobs:
-  build_and_release:
+  release:
     runs-on: ubuntu-latest
 
     steps:
@@ -29,7 +31,6 @@ jobs:
           API_URL="https://api.github.com/repos/MCJack123/craftos2/releases/latest"
           ASSET_URL=$(curl -s $API_URL \
             | jq -r '.assets[] | select(.name | test("AppImage")) | .browser_download_url')
-          echo "Downloading AppImage from $ASSET_URL"
           curl -L -o CraftOS-PC.AppImage "$ASSET_URL"
           chmod +x CraftOS-PC.AppImage
           mv CraftOS-PC.AppImage /usr/local/bin/craftos
@@ -39,7 +40,7 @@ jobs:
           chmod +x ./build.sh
           ./build.sh
 
-      - name: Collect artifacts
+      - name: Create archive
         run: |
           mkdir artifact
           cp build/radon.lua artifact/
@@ -49,18 +50,12 @@ jobs:
           cp CardLayout.lua artifact/
           tar -cf release.tar -C artifact .
 
-      - name: Upload Build Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          path: artifact/*
-          retention-days: 90
-
-      - name: Create Latest Release
+      - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: latest
-          name: Latest Build
-          prerelease: true
+          tag_name: v${{ github.event.inputs.version }}
+          name: v${{ github.event.inputs.version }}
+          prerelease: false
           files: |
             release.tar
             artifact/radon.lua
